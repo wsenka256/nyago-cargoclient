@@ -2058,7 +2058,77 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
               </div>
             </div>
           </div>
+         {/* 3. Pickup Location */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4">
+        <div>
+          <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+            3. Pickup Location
+          </label>
+          <p className="text-xs text-slate-400 mt-1">
+            Where should Nyago Cargo collect your shipment?
+          </p>
+        </div>
 
+        <div>
+          <label className="block text-slate-400 mb-1.5 font-medium text-sm">
+            Pickup Address <span className="text-amber-500">*</span>
+          </label>
+          <input
+            type="text"
+            required
+            value={pickupAddress}
+            onChange={(e) => setPickupAddress(e.target.value)}
+            placeholder="Enter building, street, district and city"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-slate-400 mb-1.5 font-medium text-sm">
+            Pickup Instructions (Optional)
+          </label>
+          <textarea
+            value={pickupInstructions}
+            onChange={(e) => setPickupInstructions(e.target.value)}
+            placeholder="Landmark, building number, preferred collection time..."
+            rows={3}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (!navigator.geolocation) {
+              alert("Location is not supported by this browser.");
+              return;
+            }
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                setPickupLatitude(position.coords.latitude);
+                setPickupLongitude(position.coords.longitude);
+                setPickupAddress((current) =>
+                  current || "Current GPS location"
+                );
+                alert("Pickup GPS location captured successfully.");
+              },
+              () => alert(
+                "Unable to access your location. Please allow location permission or enter the address manually."
+              ),
+              { enableHighAccuracy: true, timeout: 15000 }
+            );
+          }}
+          className="w-full sm:w-auto px-4 py-3 rounded-xl border border-amber-500/40 text-amber-400 font-semibold text-sm hover:bg-amber-500/10"
+        >
+          Use My Current Location
+        </button>
+
+        {pickupLatitude !== null && pickupLongitude !== null && (
+          <p className="text-xs text-emerald-400">
+            GPS location captured: {pickupLatitude.toFixed(6)}, {pickupLongitude.toFixed(6)}
+          </p>
+        )}
+      </div>
           {/* 3. Consignee Details */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between">
