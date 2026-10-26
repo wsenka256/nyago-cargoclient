@@ -1727,7 +1727,10 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
   const [receiverCountry, setReceiverCountry] = useState('Uganda');
   const [receiverCity, setReceiverCity] = useState('Kampala');
   const [receiverAddress, setReceiverAddress] = useState('Central Depot (Collection)');
-
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [pickupInstructions, setPickupInstructions] = useState('');
+  const [pickupLatitude, setPickupLatitude] = useState(null);
+  const [pickupLongitude, setPickupLongitude] = useState(null);
   const [cargoType, setCargoType] = useState('Air Freight');
   const [weightKg, setWeightKg] = useState(12);
   const [packageType, setPackageType] = useState('Carton Box');
