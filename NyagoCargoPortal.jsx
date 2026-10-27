@@ -774,6 +774,25 @@ export default function App() {
       </header>
 
       {/* MAIN VIEWPORT */}
+
+      
+      {/* ORIGINAL NYAGO CARGO SHIPPING BANNER */}
+      <section className="app-chrome w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-5">
+        <button
+          type="button"
+          onClick={() => setActiveTab('booking')}
+          className="block w-full overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-xl"
+          aria-label="Book a shipment"
+        >
+          <img
+            src="https://raw.githubusercontent.com/wsenka256/Clients-nyago/main/public/images/nyago-cargo-image.png"
+            alt="Nyago Cargo air freight, sea freight and land transport"
+            className="block w-full h-auto object-contain"
+            loading="eager"
+          />
+        </button>
+      </section>
+
       <main className="app-chrome flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {activeTab === 'tracking' && (
           <TrackingPortalView
