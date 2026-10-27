@@ -2,9 +2,6 @@ name: Build Customer Android APK
 
 on:
 workflow_dispatch:
-push:
-branches:
-- main
 
 jobs:
 build-apk:
@@ -18,7 +15,6 @@ steps:
     uses: actions/setup-node@v4
     with:
       node-version: 20
-      cache: npm
 
   - name: Set up Java
     uses: actions/setup-java@v4
