@@ -172,7 +172,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('tracking');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
-
+const [preferredView, setPreferredView] = useState('desktop');
   const showToast = useCallback((msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3800);
