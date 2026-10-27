@@ -82,6 +82,7 @@ const EXCHANGE_RATES = {
 
 const STATUS_STEPS = [
   'Booking Created',
+  'Picked',
   'Received at KSA Hub',
   'Customs Cleared (KSA ZATCA)',
   'In Transit',
@@ -1424,13 +1425,14 @@ function TrackingPortalView({ shipments, initialTrackingId, onOpenWaybill, onNav
   const getStepProgressIndex = (status) => {
     switch (status) {
       case 'Booking Created': return 0;
-      case 'Received at KSA Hub': return 1;
-      case 'Customs Cleared (KSA ZATCA)': return 2;
-      case 'In Transit': return 3;
-      case 'Arrived at Destination Port/Airport': return 4;
-      case 'Customs Cleared (East Africa)': return 5;
-      case 'Out for Delivery / Ready for Pickup': return 6;
-      case 'Delivered': return 7;
+      case 'Picked': return 1;
+      case 'Received at KSA Hub': return 2;
+      case 'Customs Cleared (KSA ZATCA)': return 3;
+      case 'In Transit': return 4;
+      case 'Arrived at Destination Port/Airport': return 5;
+      case 'Customs Cleared (East Africa)': return 6;
+      case 'Out for Delivery / Ready for Pickup': return 7;
+      case 'Delivered': return 8;
       default: return 0;
     }
   };
