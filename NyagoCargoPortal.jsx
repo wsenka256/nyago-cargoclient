@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
 import {
   Plane,
   Ship,
@@ -2027,32 +2029,44 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
     }
   }, [pickupLatitude, pickupLongitude]);
 
-  const useCurrentPickupLocation = () => {
+  const useCurrentPickupLocation = async () => {
     setPickupLocationMessage('');
-    if (!navigator.geolocation) {
-      setPickupLocationMessage('GPS is not available in this browser. You can still tap the map or drag the pin to choose your pickup point.');
-      return;
+    try {
+      let position;
+      if (Capacitor.isNativePlatform()) {
+        // Native Android permission prompt appears when the customer chooses Locate me.
+        let permission = await Geolocation.checkPermissions();
+        if (permission.location !== 'granted' && permission.coarseLocation !== 'granted') {
+          permission = await Geolocation.requestPermissions();
+        }
+        if (permission.location !== 'granted' && permission.coarseLocation !== 'granted') {
+          setPickupLocationMessage('Location permission was not allowed. You can enable it in Android Settings → Apps → Nyago Cargo Customer → Permissions → Location, or select the pickup point manually on the map.');
+          return;
+        }
+        position = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 });
+      } else {
+        if (!navigator.geolocation) {
+          setPickupLocationMessage('GPS is not available in this browser. You can still tap the map or drag the pin to choose your pickup point.');
+          return;
+        }
+        position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }));
+      }
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      setPickupLatitude(lat);
+      setPickupLongitude(lng);
+      setPickupAddress((current) => current && current !== 'Current GPS location' ? current : '');
+      setPickupLocationMessage('Your current location was selected. Please check the address before booking.');
+      if (pickupMapRef.current) pickupMapRef.current.setView([lat, lng], 16);
+    } catch (error) {
+      const denied = error?.code === 1 || /denied|permission/i.test(error?.message || '');
+      const unavailable = error?.code === 2 || /unavailable/i.test(error?.message || '');
+      setPickupLocationMessage(denied
+        ? 'Location permission was denied. You can allow it in Android Settings → Apps → Nyago Cargo Customer → Permissions → Location, or tap the map/drag the pin to choose manually.'
+        : unavailable
+          ? 'Your device could not determine its location. Turn on Android Location/GPS and try again, or select the point manually on the map.'
+          : 'Could not get your location just now. Check that Location/GPS is enabled and try again, or select the point manually on the map.');
     }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        setPickupLatitude(lat);
-        setPickupLongitude(lng);
-        setPickupAddress((current) => current && current !== 'Current GPS location' ? current : '');
-        setPickupLocationMessage('Your current location was selected. Please check the address before booking.');
-        if (pickupMapRef.current) pickupMapRef.current.setView([lat, lng], 16);
-      },
-      (error) => {
-        const message = error?.code === 1
-          ? 'Location permission is blocked. On Android, open Settings → Apps → your browser (or Nyago Cargo app) → Permissions → Location, allow it, then try again. GPS is optional—you can tap the map or drag the pin instead.'
-          : error?.code === 2
-            ? 'Your device could not determine its location. Turn on Location/GPS and try again, or tap the map or drag the pin to choose the pickup point.'
-            : 'Getting your location timed out. Turn on Location/GPS and try again, or tap the map or drag the pin to choose the pickup point.';
-        setPickupLocationMessage(message);
-      },
-      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
-    );
   };
   const [cargoType, setCargoType] = useState('Air Freight');
   const [weightKg, setWeightKg] = useState(12);
