@@ -174,6 +174,59 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [preferredView, setPreferredView] = useState('desktop');
   const [toastMessage, setToastMessage] = useState(null);
+  const [supportChatOpen, setSupportChatOpen] = useState(false);
+  const [supportQuestion, setSupportQuestion] = useState('');
+  const [supportMessages, setSupportMessages] = useState([
+    { id: 'welcome', role: 'assistant', text: 'Hello! I’m Nyago Cargo customer support. I can help with bookings, tracking, delivery stages, rates, and contacting our team. I’m an automated guide, so please don’t send passwords or payment-card details.' }
+  ]);
+
+  const answerSupportQuestion = useCallback((rawQuestion) => {
+    const q = rawQuestion.trim().toLowerCase();
+    if (!q) return 'Please type a question and I’ll try to help.';
+    if (/track|tracking|where.*(parcel|shipment|cargo)|status/.test(q)) {
+      return 'To check a shipment, open Tracking on this website and enter the tracking number exactly as shown on your booking confirmation. I can guide you, but I cannot see a private shipment record in this chat.';
+    }
+    if (/book|booking|create.*shipment|send.*(parcel|cargo)|ship.*(parcel|cargo)/.test(q)) {
+      return 'To create a shipment booking, choose Book Shipment and complete the sender, receiver, cargo, weight, and pickup details. Review the details before submitting. Sign in or register if the booking form asks you to.';
+    }
+    if (/rate|price|cost|how much|air freight|air cargo/.test(q)) {
+      return 'The website currently lists air freight at 23 SAR per kg and sea freight at 13 SAR per kg, plus a 25 SAR handling fee. Final charges can depend on the shipment details; review the estimate on the booking form or contact our team to confirm.';
+    }
+    if (/sea freight|ship by sea|ocean/.test(q)) {
+      return 'Sea freight is listed at 13 SAR per kg, plus a 25 SAR handling fee. Choose the appropriate freight option in the booking form and confirm the final quote with our support team.';
+    }
+    if (/pickup|pick up|collection|collect/.test(q)) {
+      return 'For pickup, include an accurate pickup location and contact number in your booking. If pickup has already been booked and you need to change the location or timing, please contact our team directly.';
+    }
+    if (/deliver|delivery|how long|arrival|arrive|delay|late/.test(q)) {
+      return 'Delivery timing depends on the route, departure schedule, customs, and the shipment’s current stage. Use Tracking for the latest recorded status and estimated delivery date. If the estimate has passed, contact customer care with your tracking number.';
+    }
+    if (/pay|payment|paid|invoice|refund/.test(q)) {
+      return 'For payment confirmation, invoices, or refunds, please contact Nyago Cargo customer care with your tracking number. This chat cannot verify payments or change billing records.';
+    }
+    if (/human|agent|contact|phone|call|email|support/.test(q)) {
+      return 'You can contact Nyago Cargo customer care: KSA +966 57 066 4167, East Africa +256 706 305 303, or support@nyagocargo.com.';
+    }
+    if (/account|sign in|login|password|register|reset/.test(q)) {
+      return 'Use Sign In / Register in the website header. If you forgot your password, choose the password-reset option and follow the email instructions. Never share your password or reset link in this chat.';
+    }
+    if (/hello|hi|hey|good morning|good afternoon/.test(q)) {
+      return 'Hello! How can I help with your Nyago Cargo booking, tracking, rates, pickup, or delivery today?';
+    }
+    return 'I can help with shipment tracking, booking steps, freight rates, pickup guidance, delivery updates, account access, and customer-care contacts. Try asking one of those questions, or contact our team for account-specific help.';
+  }, []);
+
+  const sendSupportMessage = useCallback((question = supportQuestion) => {
+    const text = question.trim();
+    if (!text) return;
+    const reply = answerSupportQuestion(text);
+    setSupportMessages((prev) => [
+      ...prev,
+      { id: `customer-${Date.now()}`, role: 'user', text },
+      { id: `assistant-${Date.now()}-reply`, role: 'assistant', text: reply },
+    ]);
+    setSupportQuestion('');
+  }, [answerSupportQuestion, supportQuestion]);
 
   const showToast = useCallback((msg) => {
     setToastMessage(msg);
@@ -914,6 +967,44 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* CUSTOMER SUPPORT CHAT — local, free FAQ assistant; no external AI service or private-record access */}
+      <div className="app-chrome fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3">
+        {supportChatOpen && (
+          <section className="w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-amber-500/40 bg-slate-950 shadow-2xl" aria-label="Nyago Cargo customer support chat">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-slate-950"><Sparkles className="h-5 w-5" /></div>
+                <div><div className="text-sm font-bold text-white">Nyago Cargo Support</div><div className="text-[11px] text-emerald-400">Automated help · Free</div></div>
+              </div>
+              <button type="button" onClick={() => setSupportChatOpen(false)} className="rounded-lg p-2 text-slate-300 hover:bg-slate-800" aria-label="Close customer support"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="max-h-[min(48vh,420px)] space-y-3 overflow-y-auto px-3 py-3" aria-live="polite">
+              {supportMessages.map((message) => (
+                <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[90%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-relaxed ${message.role === 'user' ? 'bg-amber-500 text-slate-950' : 'border border-slate-800 bg-slate-900 text-slate-100'}`}>{message.text}</div>
+                </div>
+              ))}
+              {supportMessages.length === 1 && (
+                <div className="flex flex-wrap gap-2">
+                  {['How do I track a shipment?', 'What are your rates?', 'How do I book a pickup?'].map((question) => (
+                    <button key={question} type="button" onClick={() => sendSupportMessage(question)} className="rounded-full border border-slate-700 px-3 py-2 text-left text-xs text-amber-300 hover:border-amber-500">{question}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <form onSubmit={(event) => { event.preventDefault(); sendSupportMessage(); }} className="flex items-center gap-2 border-t border-slate-800 p-3">
+              <input value={supportQuestion} onChange={(event) => setSupportQuestion(event.target.value)} placeholder="Ask about booking or tracking…" aria-label="Type your customer support question" className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-white outline-none focus:border-amber-500" />
+              <button type="submit" disabled={!supportQuestion.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-slate-950 disabled:opacity-40" aria-label="Send question"><Send className="h-4 w-4" /></button>
+            </form>
+            <div className="px-3 pb-3 text-[10px] leading-relaxed text-slate-500">Automated guidance only. Do not share passwords or sensitive payment details. For shipment-specific help call +966 57 066 4167 or +256 706 305 303.</div>
+          </section>
+        )}
+        <button type="button" onClick={() => setSupportChatOpen((open) => !open)} className="flex items-center gap-2 rounded-full border border-amber-300/50 bg-amber-500 px-5 py-3 font-bold text-slate-950 shadow-xl hover:bg-amber-400" aria-expanded={supportChatOpen} aria-label={supportChatOpen ? 'Close customer support chat' : 'Open customer support chat'}>
+          {supportChatOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+          <span>{supportChatOpen ? 'Close support' : 'AI Customer Support'}</span>
+        </button>
+      </div>
 
       {/* AUTHENTICATION & PASSWORD MODAL */}
       {authModalOpen && (
