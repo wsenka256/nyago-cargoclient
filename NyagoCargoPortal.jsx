@@ -1396,7 +1396,9 @@ function TrackingPortalView({ shipments, initialTrackingId, onOpenWaybill, onNav
       }
 
       const { data, error } = await supabase.rpc('track_shipment', { p_tracking_id: clean });
-      setSelectedShipment(!error && data ? { ...data, restricted: true } : null);
+      // Postgres TABLE-returning RPCs return an array; normalize the first row before rendering.
+      const trackedShipment = Array.isArray(data) ? data[0] : data;
+      setSelectedShipment(!error && trackedShipment ? { ...trackedShipment, restricted: true } : null);
     },
     [shipments]
   );
