@@ -176,6 +176,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('tracking');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [preferredView, setPreferredView] = useState('desktop');
+  const [language, setLanguage] = useState(() => { try { return localStorage.getItem('nyago-customer-language') || 'en'; } catch { return 'en'; } });
+  useEffect(() => { try { localStorage.setItem('nyago-customer-language', language); } catch {} document.documentElement.lang = language === 'ar' ? 'ar' : 'en'; document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'; }, [language]);
   const [toastMessage, setToastMessage] = useState(null);
   const [supportChatOpen, setSupportChatOpen] = useState(false);
   const [supportQuestion, setSupportQuestion] = useState('');
@@ -433,6 +435,7 @@ export default function App() {
 
   return (
     <div
+      dir={language === 'ar' ? 'rtl' : 'ltr'}
       className={`app-root view-${preferredView} min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950 ${
         selectedWaybillShipment ? 'waybill-open' : ''
       }`}
@@ -582,6 +585,7 @@ export default function App() {
         </div>
       </div>
 
+      <div className="fixed right-3 top-24 z-[60] flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-950/95 p-1 shadow-xl" aria-label="Language selector"><button type="button" onClick={() => setLanguage('en')} aria-pressed={language === 'en'} className={`rounded-lg px-3 py-2 text-xs font-bold ${language === 'en' ? 'bg-amber-400 text-slate-950' : 'text-slate-200'}`}>English</button><button type="button" onClick={() => setLanguage('ar')} aria-pressed={language === 'ar'} className={`rounded-lg px-3 py-2 text-xs font-bold ${language === 'ar' ? 'bg-amber-400 text-slate-950' : 'text-slate-200'}`}>العربية</button></div>
       {/* CLIENT HEADER NAVBAR */}
       <header className="app-chrome sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
@@ -722,8 +726,8 @@ export default function App() {
 
           {/* Desktop / Mobile View Switch */}
           <div className="flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900 p-1 shrink-0">
-            <button type="button" onClick={() => { setPreferredView('desktop'); setMobileMenuOpen(false); }} aria-pressed={preferredView === 'desktop'} className={`px-2 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg ${preferredView === 'desktop' ? 'bg-amber-500 text-slate-950' : 'text-slate-300'}`}>Desktop View</button>
-            <button type="button" onClick={() => { setPreferredView('mobile'); setMobileMenuOpen(false); }} aria-pressed={preferredView === 'mobile'} className={`px-2 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg ${preferredView === 'mobile' ? 'bg-amber-500 text-slate-950' : 'text-slate-300'}`}>Mobile View</button>
+            <button type="button" onClick={() => { setPreferredView('desktop'); setMobileMenuOpen(false); }} aria-pressed={preferredView === 'desktop'} className={`px-2 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg ${preferredView === 'desktop' ? 'bg-amber-500 text-slate-950' : 'text-slate-300'}`}>{language === 'ar' ? 'عرض سطح المكتب' : 'Desktop View'}</button>
+            <button type="button" onClick={() => { setPreferredView('mobile'); setMobileMenuOpen(false); }} aria-pressed={preferredView === 'mobile'} className={`px-2 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg ${preferredView === 'mobile' ? 'bg-amber-500 text-slate-950' : 'text-slate-300'}`}>{language === 'ar' ? 'عرض الهاتف' : 'Mobile View'}</button>
           </div>
 
           {/* Mobile Hamburger Button */}
@@ -760,7 +764,7 @@ export default function App() {
                 activeTab === 'tracking' ? 'bg-amber-500 text-slate-950' : 'text-slate-300'
               }`}
             >
-              <Search className="w-4 h-4" /> Live Tracking
+              <Search className="w-4 h-4" /> {language === 'ar' ? 'التتبع المباشر' : 'Live Tracking'}
             </button>
             <button
               onClick={() => {
