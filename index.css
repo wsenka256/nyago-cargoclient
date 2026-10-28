@@ -68,3 +68,11 @@ svg {
     overflow-x: hidden;
   }
 }
+
+
+/* Mobile layout refinements and Arabic direction */
+html[dir='rtl'] body { direction: rtl; }
+.app-root { min-height: 100dvh; }
+.app-root > main.app-chrome { flex: 0 0 auto !important; min-height: 0 !important; }
+.app-root > footer.app-chrome { margin-top: 2rem; }
+@media (max-width: 767px) { .app-root > header.app-chrome > div.max-w-7xl { height: auto !important; min-height: 4.25rem; padding-top: .65rem; padding-bottom: .65rem; gap: .65rem !important; flex-wrap: wrap; } .app-root > header.app-chrome nav { max-width: 100%; overflow-x: auto; } .app-root img { height: auto; } }
