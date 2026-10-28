@@ -22,8 +22,18 @@ jobs:
           java-version: 21
       - name: Install dependencies
         run: npm install
+      - name: Verify Supabase build configuration
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$VITE_SUPABASE_URL" || (echo "::error::Missing GitHub Actions secret VITE_SUPABASE_URL"; exit 1)
+          test -n "$VITE_SUPABASE_ANON_KEY" || (echo "::error::Missing GitHub Actions secret VITE_SUPABASE_ANON_KEY"; exit 1)
       - name: Build website
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - name: Create Android project
         run: npx cap add android
       - name: Add Android location permissions to native manifest
