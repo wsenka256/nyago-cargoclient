@@ -1531,7 +1531,14 @@ function TrackingPortalView({ shipments, initialTrackingId, onOpenWaybill, onNav
                   </span>
                   <span>&middot;</span>
                   <span className="text-slate-400">
-                    Booked {new Date(selectedShipment.created_at).toLocaleDateString()}
+                    Booked {(() => {
+                    const bookedAt = selectedShipment.created_at ?? selectedShipment.createdAt ?? selectedShipment.booking_date;
+                    if (!bookedAt) return 'Date unavailable';
+                    const bookedDate = new Date(bookedAt);
+                    return Number.isNaN(bookedDate.getTime())
+                      ? 'Date unavailable'
+                      : bookedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                  })()}
                   </span>
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
