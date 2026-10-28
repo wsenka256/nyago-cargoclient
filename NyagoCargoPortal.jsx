@@ -780,7 +780,7 @@ export default function App() {
       {/* ORIGINAL NYAGO CARGO SHIPPING BANNER */}
       <section className="app-chrome w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-5">
         <button type="button" onClick={() => setActiveTab('booking')} className="block w-full overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-xl focus:outline-none focus:ring-2 focus:ring-amber-400" aria-label="Book a shipment">
-          <img src="https://raw.githubusercontent.com/wsenka256/Clients-nyago/main/public/images/nyago-cargo-image.png" alt="Nyago Cargo shipping services: air freight, sea freight and land transport" className="block w-full h-auto object-contain" loading="eager" />
+          <img src="/images/nyago-cargo-image.jpg" alt="Nyago Cargo shipping services: air freight, sea freight and land transport" className="block w-full h-auto object-contain" loading="eager" />
         </button>
       </section>
 
