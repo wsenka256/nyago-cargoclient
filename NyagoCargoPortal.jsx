@@ -1996,9 +1996,28 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
         const initial = pickupLatitude != null && pickupLongitude != null
           ? [pickupLatitude, pickupLongitude] : [24.7136, 46.6753]; // Riyadh default
         const map = L.map(pickupMapElementRef.current, { scrollWheelZoom: true }).setView(initial, pickupLatitude != null ? 16 : 5);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+        // Try OpenStreetMap first, then automatically fall back to CARTO if tiles are blocked/unavailable in the Android WebView.
+        let tileFallbackUsed = false;
+        let primaryTileErrors = 0;
+        const primaryTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19, attribution: '&copy; OpenStreetMap contributors', crossOrigin: true
         }).addTo(map);
+        primaryTiles.on('tileerror', () => {
+          primaryTileErrors += 1;
+          if (primaryTileErrors >= 3 && !tileFallbackUsed && pickupMapRef.current === null) {
+            tileFallbackUsed = true;
+            map.removeLayer(primaryTiles);
+            setPickupMapError('Loading alternate map tiles…');
+            const alternateTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+              maxZoom: 19,
+              subdomains: 'abcd',
+              attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+              crossOrigin: true
+            }).addTo(map);
+            alternateTiles.once('tileload', () => setPickupMapError(''));
+            alternateTiles.on('tileerror', () => setPickupMapError('Map imagery could not load. Check your internet connection or disable any network/content blocker, then reload this booking page. You can still select the point if the map tiles become available.'));
+          }
+        });
         const marker = L.marker(initial, { draggable: true }).addTo(map);
         const applyPoint = (latlng) => {
           setPickupLatitude(latlng.lat);
