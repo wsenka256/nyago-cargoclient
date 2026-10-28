@@ -322,11 +322,14 @@ export default function App() {
       password,
     });
     if (error) {
+      console.error('[Customer sign-in] Supabase error:', error.message, error.status || '');
       return {
         success: false,
         error: /not confirmed/i.test(error.message)
           ? 'Please confirm your email address first. Check your inbox.'
-          : 'Incorrect email or password.',
+          : /invalid login credentials/i.test(error.message)
+            ? 'Supabase rejected this email/password combination. Check the email and password, and confirm you are using the same Supabase project as the website.'
+            : `Sign-in failed: ${error.message}`,
       };
     }
     setAuthModalOpen(false);
