@@ -21,6 +21,7 @@ import {
   Calendar,
   Box,
   MapPin,
+  LocateFixed,
   Phone,
   Mail,
   ShieldCheck,
@@ -2427,9 +2428,17 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
             </button>
           </div>
           {pickupLocationMessage && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-200">{pickupLocationMessage}</p>}
-          <div ref={pickupMapElementRef} role="application" aria-label="Pickup location map. Tap the map or drag the marker to choose a pickup point."
-            className="w-full rounded-2xl border border-slate-700 overflow-hidden bg-slate-800" style={{ height: '320px', minHeight: '280px', zIndex: 0 }} />
-          <p className="text-xs text-slate-400">Tap anywhere on the map or drag the pin to select the exact pickup point. GPS permission is optional.</p>
+          <div className="relative w-full overflow-hidden rounded-2xl border border-slate-700 bg-slate-800" style={{ isolation: 'isolate' }}>
+            <div ref={pickupMapElementRef} role="application" aria-label="Pickup location map. Tap the map or drag the marker to choose a pickup point."
+              className="w-full" style={{ height: 'min(58vh, 440px)', minHeight: '300px', zIndex: 0 }} />
+            <button type="button" onClick={useCurrentPickupLocation}
+              className="absolute right-3 top-3 z-[1000] flex min-h-11 items-center gap-2 rounded-xl border border-slate-300/70 bg-white px-3 py-2 text-sm font-bold text-slate-800 shadow-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              aria-label="Locate me and center the pickup map on my current location" title="Locate me">
+              <LocateFixed className="h-5 w-5 text-sky-700" />
+              <span>Locate me</span>
+            </button>
+          </div>
+          <p className="text-xs text-slate-400">Tap the map or drag the pin to select your pickup point. Use “Locate me” on the map to center it on your GPS location; location permission is optional.</p>
           {pickupMapError && <p className="text-xs text-rose-400">{pickupMapError}</p>}
           {pickupLatitude !== null && pickupLongitude !== null && (
             <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-1">
