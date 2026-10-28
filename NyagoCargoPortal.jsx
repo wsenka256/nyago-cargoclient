@@ -1946,6 +1946,7 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
   const pickupMarkerRef = useRef(null);
   const [pickupMapReady, setPickupMapReady] = useState(false);
   const [pickupMapError, setPickupMapError] = useState('');
+  const [pickupLocationMessage, setPickupLocationMessage] = useState('');
 
   // Interactive OpenStreetMap picker. Leaflet is loaded on demand, so no package install is needed.
   useEffect(() => {
@@ -2026,8 +2027,9 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
   }, [pickupLatitude, pickupLongitude]);
 
   const useCurrentPickupLocation = () => {
+    setPickupLocationMessage('');
     if (!navigator.geolocation) {
-      alert('Location is not supported by this browser. Please choose a point on the map.');
+      setPickupLocationMessage('GPS is not available in this browser. You can still tap the map or drag the pin to choose your pickup point.');
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -2037,10 +2039,18 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
         setPickupLatitude(lat);
         setPickupLongitude(lng);
         setPickupAddress((current) => current && current !== 'Current GPS location' ? current : '');
+        setPickupLocationMessage('Your current location was selected. Please check the address before booking.');
         if (pickupMapRef.current) pickupMapRef.current.setView([lat, lng], 16);
       },
-      () => alert('Unable to access your location. Allow location permission or select a point on the map.'),
-      { enableHighAccuracy: true, timeout: 15000 }
+      (error) => {
+        const message = error?.code === 1
+          ? 'Location permission is blocked. On Android, open Settings → Apps → your browser (or Nyago Cargo app) → Permissions → Location, allow it, then try again. GPS is optional—you can tap the map or drag the pin instead.'
+          : error?.code === 2
+            ? 'Your device could not determine its location. Turn on Location/GPS and try again, or tap the map or drag the pin to choose the pickup point.'
+            : 'Getting your location timed out. Turn on Location/GPS and try again, or tap the map or drag the pin to choose the pickup point.';
+        setPickupLocationMessage(message);
+      },
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
     );
   };
   const [cargoType, setCargoType] = useState('Air Freight');
@@ -2416,6 +2426,7 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
               Use My Current Location (GPS)
             </button>
           </div>
+          {pickupLocationMessage && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-200">{pickupLocationMessage}</p>}
           <div ref={pickupMapElementRef} role="application" aria-label="Pickup location map. Tap the map or drag the marker to choose a pickup point."
             className="w-full rounded-2xl border border-slate-700 overflow-hidden bg-slate-800" style={{ height: '320px', minHeight: '280px', zIndex: 0 }} />
           <p className="text-xs text-slate-400">Tap anywhere on the map or drag the pin to select the exact pickup point. GPS permission is optional.</p>
