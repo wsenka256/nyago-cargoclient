@@ -2004,7 +2004,7 @@ function BookingConsignmentView({ currentUser, onOpenAuth, onBookingCreated, onO
         }).addTo(map);
         primaryTiles.on('tileerror', () => {
           primaryTileErrors += 1;
-          if (primaryTileErrors >= 3 && !tileFallbackUsed && pickupMapRef.current === null) {
+          if (primaryTileErrors >= 3 && !tileFallbackUsed) {
             tileFallbackUsed = true;
             map.removeLayer(primaryTiles);
             setPickupMapError('Loading alternate map tiles…');
