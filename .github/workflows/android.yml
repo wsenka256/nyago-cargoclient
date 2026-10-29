@@ -72,7 +72,7 @@ jobs:
               if permission not in s:
                   s = s.replace(marker, marker, 1)
                   end = s.find('>', s.find(marker)) + 1
-                  s = s[:end] + '\\n' + permission + s[end:]
+                  s = s[:end] + '\n' + permission + s[end:]
           p.write_text(s)
           PY
       - name: Sync Android project
