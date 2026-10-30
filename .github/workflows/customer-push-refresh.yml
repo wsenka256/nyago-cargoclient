@@ -1,0 +1,89 @@
+name: Rebuild Customer Android APK (Push Token Refresh)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-customer-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout customer app
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify required app secrets
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          FIREBASE_GOOGLE_SERVICES_JSON: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON }}
+        run: |
+          test -n "$VITE_SUPABASE_URL" || (echo "::error::Missing VITE_SUPABASE_URL"; exit 1)
+          test -n "$VITE_SUPABASE_ANON_KEY" || (echo "::error::Missing VITE_SUPABASE_ANON_KEY"; exit 1)
+          test -n "$FIREBASE_GOOGLE_SERVICES_JSON" || (echo "::error::Missing FIREBASE_GOOGLE_SERVICES_JSON"; exit 1)
+
+      - name: Build customer web app
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Install Customer Firebase configuration
+        env:
+          FIREBASE_GOOGLE_SERVICES_JSON: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON }}
+        run: |
+          mkdir -p android/app
+          printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          config = json.loads(Path("android/app/google-services.json").read_text())
+          package_names = {
+              client.get("client_info", {}).get("android_client_info", {}).get("package_name")
+              for client in config.get("client", [])
+          }
+          if "com.nyagocargo.customer" not in package_names:
+              raise SystemExit("Firebase config is not for com.nyagocargo.customer")
+          print("Verified Firebase Android package: com.nyagocargo.customer")
+          PY
+
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Build Customer debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew clean assembleDebug
+
+      - name: Verify APK output
+        run: |
+          test -s android/app/build/outputs/apk/debug/app-debug.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk nyago-cargo-customer-refresh.apk
+
+      - name: Upload fresh Customer APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyago-cargo-customer-push-refresh
+          path: nyago-cargo-customer-refresh.apk
+          if-no-files-found: error
+          retention-days: 14
