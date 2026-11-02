@@ -1819,9 +1819,10 @@ function TrackingPortalView({ shipments, initialTrackingId, onOpenWaybill, onNav
                 </div>
                 <div className="space-y-3 text-xs">
                   <div className="flex justify-between py-1 border-b border-slate-800/60">
-                    <span className="text-slate-400">Total Gross Weight:</span>
+                    <span className="text-slate-400">Verified Gross Weight:</span>
                     <span className="font-mono tabular-nums text-white font-bold">
                       {selectedShipment.weight_kg} kg
+                      {selectedShipment.declared_weight_kg != null && Number(selectedShipment.declared_weight_kg) !== Number(selectedShipment.weight_kg) && <span className="block text-[10px] text-amber-400 font-normal">Customer declared: {selectedShipment.declared_weight_kg} kg</span>}
                     </span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-800/60">
